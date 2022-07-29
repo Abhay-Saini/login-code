@@ -1,0 +1,71 @@
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using NewCore_Application_As.Models;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
+using NewCore_Application_As.DbConnection;
+using Microsoft.AspNetCore.Authorization;
+
+namespace NewCore_Application_As.Controllers
+{
+    [Authorize]
+    public class HomeController : Controller
+    {
+        private readonly AmazonDb db;
+        public HomeController(AmazonDb _db)
+        {
+            db = _db;
+        }
+
+
+        public IActionResult Index()
+        {
+            var res = db.Customer.ToList();
+            return View(res);
+        }
+
+        public IActionResult AddCustomers()
+        {
+            return View();
+        }
+        [HttpPost]
+        public IActionResult AddCustomers(Customers o)
+        {
+            if (o.Id == 0)
+            {
+            db.Customer.Add(o);
+            db.SaveChanges();
+            }
+            else
+            {
+                db.Customer.Update(o);
+                db.SaveChanges();
+            }
+            return RedirectToAction("Index");
+        }
+
+        public IActionResult EditCustomerDetails(int id)
+        {
+            var edititem = db.Customer.Where(m => m.Id == id).FirstOrDefault();
+            if (edititem != null )
+            {
+                return View("AddCustomers", edititem);
+            }
+
+            return NotFound();
+        }
+
+        public IActionResult Delete(int id)
+        {
+            var delitem = db.Customer.Where(m => m.Id == id).FirstOrDefault();
+            db.Customer.Remove(delitem);
+            db.SaveChanges();
+            return RedirectToAction("Index");
+        }
+
+
+    }
+}
